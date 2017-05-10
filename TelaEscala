@@ -1,0 +1,717 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package escala;
+
+import java.util.Calendar;
+import java.util.Locale;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Dream
+ */
+public class TelaEscala extends javax.swing.JFrame {
+    
+    private javax.swing.JScrollPane[] pnBase = new javax.swing.JScrollPane[12];
+    private PnCalendario[] pc = new PnCalendario[12];
+    private String[][] textos = new String[4][18];
+    private Calendar emb = Calendar.getInstance();
+    private Calendar data = Calendar.getInstance();
+    private int trab, folg, idioma;
+    private boolean reuniao;
+    
+    /**
+     * Creates new form NovoJFrame
+     */
+    public TelaEscala() {
+        for(int i=0; i<12;i++){
+            pnBase[i] = new javax.swing.JScrollPane();
+        }
+        preencheIdioma();
+        dadosIniciais();
+        initComponents();
+        mudaComponentes();
+    }
+    
+    private void escala(int trabalho, int folga){
+            // Setando variáveis
+        Calendar embarque = Calendar.getInstance();
+        Calendar desembarque = Calendar.getInstance();
+        Calendar inicio = Calendar.getInstance();
+        embarque.setTime(jcCalendario.getDate());
+        desembarque.setTime(embarque.getTime());
+        desembarque.add(Calendar.DAY_OF_MONTH, +trabalho);
+        inicio.setTime(embarque.getTime());
+        inicio.set(Calendar.DAY_OF_MONTH, 1);
+        
+			// Abrindo painéis
+        java.awt.GridBagConstraints gridBag;
+        int x = 0;
+        int y = 0;
+        for(int i = 0; i < 12; i++){
+            pc[i] = new PnCalendario(this.idioma);
+            pc[i].monta(inicio, embarque, desembarque, cbReuniao.isSelected(), trabalho, folga);
+            
+            pnBase[i].setSize(new java.awt.Dimension(170, 110));
+            pnBase[i].setViewportView(pc[i]);
+            gridBag = new java.awt.GridBagConstraints();
+            gridBag.gridx = x++;
+            gridBag.gridy = y;
+            gridBag.fill = java.awt.GridBagConstraints.BOTH;
+            gridBag.ipadx = 172;
+            gridBag.ipady = 112;
+            gridBag.anchor = java.awt.GridBagConstraints.NORTHWEST;
+            gridBag.weightx = 1.0;
+            gridBag.weighty = 1.0;
+            gridBag.insets = new java.awt.Insets(3, 3, 0, 0);
+            pnGeral.add(pnBase[i], gridBag);
+                // Organizando fileiras e colunas
+            if(x == 3){
+            x = 0;
+            y++;
+            }
+            pc[i].setVisible(true);
+                // Finalizando
+            revalidate();
+            repaint();
+	}
+            // Preparando impressão
+        this.emb = embarque;
+    }
+    
+    private void dadosIniciais(){
+        java.io.File arquivo = new java.io.File("save.txt");
+        try(java.io.FileReader fr = new java.io.FileReader(arquivo)){
+                // Buscando dt salva no sistema
+            char[]  c =  new char[14];
+            fr.read(c);
+            System.out.println("Data salva: "+java.util.Arrays.toString(c));
+                // Inserindo dt salva no sistema
+            int dia, mes, ano;
+            ano = Integer.valueOf(String.valueOf(c, 0, 4));
+            mes = Integer.valueOf(String.valueOf(c, 4, 2));
+            dia = Integer.valueOf(String.valueOf(c, 6, 2));
+                // Inserindo escala e reunião
+            this.trab = Integer.valueOf(String.valueOf(c, 8, 2));
+            this.folg = Integer.valueOf(String.valueOf(c, 10, 2));
+            this.reuniao = Integer.valueOf(String.valueOf(c, 12, 1)) == 1;
+            this.idioma = Integer.valueOf(String.valueOf(c, 13, 1));
+            this.data.set(ano, mes, dia);
+            System.out.println("Data do save: "+this.data.getTime());
+        }catch(java.io.IOException ex){
+            //ex.printStackTrace();
+            System.out.println("Arquivo Save não encontrado!");
+        }catch(NumberFormatException nfe){
+            System.out.println("Save corrompido!");
+            JOptionPane.showMessageDialog(this, textos[this.idioma][5], textos[this.idioma][6], 0);
+            Embarcado.reabrir();
+        }
+    }
+    
+    /**
+     * Método interno.
+     * Muda os textos dos componentes de acordo com o idioma selecionado.
+     */
+    private void mudaComponentes(){
+        if(this.idioma == 0){ // Portugues
+            btSalvar.setText("Salvar");
+            btImprimir.setText("Imprimir");
+            btFechar.setText("Fechar");
+            rdEditar.setText("Editar");
+            cbReuniao.setText("Reunião pré-embarque:");
+            lbEmbarque.setText("Data de embarque:");
+            lbEscala.setText("Escala:");
+            
+            jcCalendario.setLocale(new Locale("pt", "BR"));
+            escala(this.trab, this.folg);
+        }
+        if(this.idioma == 1){ // Ingles
+            btSalvar.setText("Save");
+            btImprimir.setText("Print");
+            btFechar.setText("Close");
+            rdEditar.setText("Edit");
+            cbReuniao.setText("Pre boarding meeting:");
+            lbEmbarque.setText("Boarding date:");
+            lbEscala.setText("Schedule:");
+            
+            jcCalendario.setLocale(Locale.ENGLISH);
+            escala(this.trab, this.folg);
+        }
+        if(this.idioma == 2){ // Espanhol
+            btSalvar.setText("Salvar");
+            btImprimir.setText("Imprimir");
+            btFechar.setText("Cerrar");
+            rdEditar.setText("Editar");
+            cbReuniao.setText("Reunión previa al embarque:");
+            lbEmbarque.setText("Fecha del embarque:");
+            lbEscala.setText("Escala:");
+            
+            jcCalendario.setLocale(new Locale("es", "ES"));
+            escala(this.trab, this.folg);
+        }
+        if(this.idioma == 3){ // Frances
+            btSalvar.setText("Enregistrer");
+            btImprimir.setText("Impression");
+            btFechar.setText("Fermer");
+            rdEditar.setText("Modifier");
+            cbReuniao.setText("Réunion avant embarq.:");
+            lbEmbarque.setText("Date d'embarquement:");
+            lbEscala.setText("Programme:");
+
+            jcCalendario.setLocale(Locale.FRENCH);
+            escala(this.trab, this.folg);
+        }
+            // Muda o botão de idioma selecionado
+        switch(this.idioma){
+            case 0:
+                tgBrasil.setSelected(true);
+                break;
+            case 1:
+                tgInglaterra.setSelected(true);
+                break;
+            case 2:
+                tgEspanha.setSelected(true);
+                break;
+            case 3:
+                tgFranca.setSelected(true);
+                break;
+        }
+            // Muda a escala selecionada
+        if(this.trab == 14 && this.folg == 14){
+            rd14.setSelected(true);
+        }else if(this.trab == 28 && this.folg == 28){
+            rd28.setSelected(true);
+        }else{
+            rdEditar.setSelected(true);
+        }
+        cbReuniao.setSelected(this.reuniao);
+        jcCalendario.setDate(this.data.getTime());
+    }
+    
+    /**
+     * Método interno.
+     * Preenche o array de textos com as frases nos quatro idiomas.
+     */
+    private void preencheIdioma(){
+            // Portugues
+        textos[0][1] = " por ";
+        textos[0][2] = "Primeiro embarque: ";
+        textos[0][3] = " até ";
+        textos[0][0] = "Escala de trabalho de ";
+        textos[0][4] = " (último embarque)";
+        textos[0][5] = "Erro no arquivo de dados.\nSalve uma data novamente.";
+        textos[0][6] = "Erro no arquivo de dados!";
+        textos[0][7] = "Quantos dias você trabalha?";
+        textos[0][8] = "Escala Personalizada";
+        textos[0][9] = "Quantos dias você tem de folga?";
+        textos[0][10] = "Digite valores de 1 a 99!";
+        textos[0][11] = "Digite um formato numérico!";
+        textos[0][12] = "A partir de agora, essa será a data padrão do seu";
+        textos[0][13] = " primeiro dia de embarque quando o programa for aberto.";
+        textos[0][14] = " com reunião ";
+        textos[0][15] = " sem reunião ";
+        textos[0][16] = "de pré-embarque.";
+        textos[0][17] = "Data padrão salva!";
+            // Ingles
+        textos[1][0] = "Work Schedule, ";
+        textos[1][1] = " by ";
+        textos[1][2] = "First boarding: ";
+        textos[1][3] = " until ";
+        textos[1][4] = " (last boarding)";
+        textos[1][5] = "Data file error.\nSave a date again.";
+        textos[1][6] = "Data file error!";
+        textos[1][7] = "How many working days?";
+        textos[1][8] = "Custumized work schedule";
+        textos[1][9] = "How many days off?";
+        textos[1][10] = "Enter a value between 1 and 99!";
+        textos[1][11] = "Only numeric characters!";
+        textos[1][12] = "From now on, when you open the program, ";
+        textos[1][13] = "this will be the default date for your first boarding.";
+        textos[1][14] = " with ";
+        textos[1][15] = " without ";
+        textos[1][16] = "pre boarding meeting.";
+        textos[1][17] = "Default date saved!";
+            // Espanhol
+        textos[2][0] = "Escala de trabajo, ";
+        textos[2][1] = " por ";
+        textos[2][2] = "Primer embarque: ";
+        textos[2][3] = " hasta ";
+        textos[2][4] = " (último embarque)";
+        textos[2][5] = "Error em el archivo de datos.\nSalva una fecha de nuevo.";
+        textos[2][6] = "Error em el archivo de datos!";
+        textos[2][7] = "Cuántos días de trabajo?";
+        textos[2][8] = "Escala de trabajo personalizada";
+        textos[2][9] = "Cuántos días libres?";
+        textos[2][10] = "Introduzca un valor entre 1 y 99!";
+        textos[2][11] = "Sólo caracteres numéricos!";
+        textos[2][12] = "De ahora en adelante, al abrir el programa, ";
+        textos[2][13] = "esta será la fecha predeterminada para su primer embarque.";
+        textos[2][14] = " con ";
+        textos[2][15] = " sim ";
+        textos[2][16] = "reunión previa al embarque.";
+        textos[2][17] = "La fecha predeterminada se ha guardado!";
+            // Frances
+        textos[3][0] = "Programme de travail, ";
+        textos[3][1] = " par ";
+        textos[3][2] = "Premier embarquement: ";
+        textos[3][3] = " avant ";
+        textos[3][4] = " (dernier embarquement)";
+        textos[3][5] = "Erreur de fichier de données.\nSauvegarder une date encore.";
+        textos[3][6] = "Erreur de fichier de données!";
+        textos[3][7] = "Combien de jours ouvrables?";
+        textos[3][8] = "Programme de travail personnalisé";
+        textos[3][9] = "Combien de jours?";
+        textos[3][10] = "Entrez une valeur comprise entre 1 et 99!";
+        textos[3][11] = "Seuls les caractères numériques!";
+        textos[3][12] = "À partir de maintenant, lorsque vous ouvrez le programme, ";
+        textos[3][13] = "ce sera la date par défaut pour votre premier embarquement.";
+        textos[3][14] = " avec ";
+        textos[3][15] = " sans ";
+        textos[3][16] = "réunion préalable à embarquement.";
+        textos[3][17] = "Date par défault enregistrée!"; 
+    }
+    
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+    private void initComponents() {
+
+        rgEscala = new javax.swing.ButtonGroup();
+        rgIdioma = new javax.swing.ButtonGroup();
+        jPanel1 = new javax.swing.JPanel();
+        rd28 = new javax.swing.JToggleButton();
+        cbReuniao = new javax.swing.JCheckBox();
+        rd14 = new javax.swing.JToggleButton();
+        lbEscala = new javax.swing.JLabel();
+        rdEditar = new javax.swing.JToggleButton();
+        jcCalendario = new com.toedter.calendar.JCalendar();
+        lbEmbarque = new javax.swing.JLabel();
+        btImprimir = new javax.swing.JButton();
+        btFechar = new javax.swing.JButton();
+        btSalvar = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        pnGeral = new javax.swing.JPanel();
+        tgBrasil = new javax.swing.JToggleButton();
+        tgInglaterra = new javax.swing.JToggleButton();
+        tgEspanha = new javax.swing.JToggleButton();
+        tgFranca = new javax.swing.JToggleButton();
+        jLabel1 = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Escala Maritima");
+        setIconImage(java.awt.Toolkit.getDefaultToolkit().getImage(getClass().getResource("imagens/barco.jpg")));
+        setPreferredSize(new java.awt.Dimension(675, 640));
+        setResizable(false);
+        setSize(new java.awt.Dimension(0, 0));
+
+        rgEscala.add(rd28);
+        rd28.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        rd28.setText("28/28");
+        rd28.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rd28ActionPerformed(evt);
+            }
+        });
+
+        cbReuniao.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        cbReuniao.setText("Reunião pré-embarque:");
+        cbReuniao.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cbReuniaoItemStateChanged(evt);
+            }
+        });
+
+        rgEscala.add(rd14);
+        rd14.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        rd14.setText("14/14");
+        rd14.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rd14ActionPerformed(evt);
+            }
+        });
+
+        lbEscala.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        lbEscala.setText("Escala:");
+
+        rgEscala.add(rdEditar);
+        rdEditar.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        rdEditar.setText("Editar");
+        rdEditar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdEditarActionPerformed(evt);
+            }
+        });
+
+        jcCalendario.setDate(Calendar.getInstance().getTime());
+        jcCalendario.setWeekOfYearVisible(false);
+        jcCalendario.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                jcCalendarioPropertyChange(evt);
+            }
+        });
+
+        lbEmbarque.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        lbEmbarque.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lbEmbarque.setText("Data de embarque:");
+
+        btImprimir.setText("Imprimir");
+        btImprimir.setPreferredSize(new java.awt.Dimension(90, 23));
+        btImprimir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btImprimirActionPerformed(evt);
+            }
+        });
+
+        btFechar.setLabel("Fechar");
+        btFechar.setMaximumSize(new java.awt.Dimension(500, 23));
+        btFechar.setPreferredSize(new java.awt.Dimension(90, 23));
+        btFechar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btFecharActionPerformed(evt);
+            }
+        });
+
+        btSalvar.setText("Salvar");
+        btSalvar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btSalvarActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(lbEscala)
+                        .addGap(35, 35, 35)
+                        .addComponent(rd14)
+                        .addGap(27, 27, 27)
+                        .addComponent(rd28)
+                        .addGap(27, 27, 27)
+                        .addComponent(rdEditar)
+                        .addGap(69, 69, 69))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(cbReuniao)
+                            .addComponent(lbEmbarque, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jcCalendario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(96, 96, 96)))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(btFechar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
+                    .addComponent(btImprimir, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btSalvar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(rd14)
+                            .addComponent(lbEscala)
+                            .addComponent(rdEditar)
+                            .addComponent(rd28))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(57, 57, 57)
+                                .addComponent(lbEmbarque)
+                                .addGap(18, 18, 18)
+                                .addComponent(cbReuniao))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jcCalendario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(btSalvar)
+                        .addGap(18, 18, 18)
+                        .addComponent(btImprimir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(btFechar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(7, 7, 7))
+        );
+
+        pnGeral.setPreferredSize(new java.awt.Dimension(617, 600));
+        pnGeral.setLayout(new java.awt.GridBagLayout());
+        jScrollPane1.setViewportView(pnGeral);
+
+        tgBrasil.setBackground(new java.awt.Color(255, 255, 255));
+        rgIdioma.add(tgBrasil);
+        tgBrasil.setIcon(new javax.swing.ImageIcon(getClass().getResource("/escala/imagens/brasil.jpg"))); // NOI18N
+        tgBrasil.setSelected(true);
+        tgBrasil.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        tgBrasil.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgBrasilActionPerformed(evt);
+            }
+        });
+
+        tgInglaterra.setBackground(new java.awt.Color(255, 255, 255));
+        rgIdioma.add(tgInglaterra);
+        tgInglaterra.setIcon(new javax.swing.ImageIcon(getClass().getResource("/escala/imagens/inglaterra.jpg"))); // NOI18N
+        tgInglaterra.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        tgInglaterra.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgInglaterraActionPerformed(evt);
+            }
+        });
+
+        tgEspanha.setBackground(new java.awt.Color(255, 255, 255));
+        rgIdioma.add(tgEspanha);
+        tgEspanha.setIcon(new javax.swing.ImageIcon(getClass().getResource("/escala/imagens/espanha.jpg"))); // NOI18N
+        tgEspanha.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        tgEspanha.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgEspanhaActionPerformed(evt);
+            }
+        });
+
+        tgFranca.setBackground(new java.awt.Color(255, 255, 255));
+        rgIdioma.add(tgFranca);
+        tgFranca.setIcon(new javax.swing.ImageIcon(getClass().getResource("/escala/imagens/franca.jpg"))); // NOI18N
+        tgFranca.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        tgFranca.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgFrancaActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 2, 11)); // NOI18N
+        jLabel1.setText("Autor: dreambruno@msn.com   ");
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(tgBrasil)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tgInglaterra)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tgEspanha)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tgFranca)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 640, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addContainerGap())
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(tgBrasil)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(tgInglaterra)
+                        .addComponent(tgEspanha)
+                        .addComponent(tgFranca)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1)
+                .addContainerGap(69, Short.MAX_VALUE))
+        );
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>                        
+
+    private void rd14ActionPerformed(java.awt.event.ActionEvent evt) {                                     
+        this.trab = 14;
+        this.folg = 14;
+        escala(this.trab, this.folg);
+    }                                    
+
+    private void rd28ActionPerformed(java.awt.event.ActionEvent evt) {                                     
+        this.trab = 28;
+        this.folg = 28;
+        escala(this.trab, this.folg);
+    }                                    
+
+    private void rdEditarActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        try{
+                // Pegar os valores digitados e testar se estão entre 1 e 99
+            int t = Integer.parseInt(JOptionPane.showInputDialog(null, textos[this.idioma][7], textos[this.idioma][8], 3));
+            int f = Integer.parseInt(JOptionPane.showInputDialog(null, textos[this.idioma][9], textos[this.idioma][8], 3));
+            if(t > 0 && t < 100 && f > 0 && f < 100){
+                this.trab = t;
+                this.folg = f;
+                escala(this.trab, this.folg);
+            }else{
+                    // Avisando que número está fora do desejado
+                JOptionPane.showMessageDialog(null, textos[this.idioma][10], textos[this.idioma][8], 0);
+            }
+        }catch(NumberFormatException nfe){
+            System.out.println("Erro TelaEscala rdEditar: "+nfe);
+            JOptionPane.showMessageDialog(null, textos[this.idioma][11], textos[this.idioma][8], 0);
+        }
+    }                                        
+
+    private void jcCalendarioPropertyChange(java.beans.PropertyChangeEvent evt) {                                            
+        escala(this.trab, this.folg);
+    }                                           
+
+    private void btFecharActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        dispose();
+    }                                        
+
+    private void cbReuniaoItemStateChanged(java.awt.event.ItemEvent evt) {                                           
+        escala(this.trab, this.folg);
+    }                                          
+
+    private void btImprimirActionPerformed(java.awt.event.ActionEvent evt) {                                           
+        java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd/MM/yyyy");
+        String tit = textos[this.idioma][0] + this.trab + textos[this.idioma][1] + this.folg;
+        String sub = textos[this.idioma][2] + df.format(jcCalendario.getDate()) +
+                        textos[this.idioma][3] + df.format(this.emb.getTime()) + textos[this.idioma][4];
+        
+        TelaImprimir ji = new TelaImprimir(tit, sub, this.pc);
+        ji.setVisible(true);
+        ji.imprimir();
+        ji.dispose();
+        escala(this.trab, this.folg); // Re-gerar escala pois estava dando erro no pnGeral
+    }                                          
+
+    private void btSalvarActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        java.io.File arquivo = new java.io.File("save.txt");
+        try( java.io.FileWriter fw = new java.io.FileWriter(arquivo) ){
+            this.data = jcCalendario.getCalendar(); // data selecionada
+            
+                // adicionando ano a string
+            String dt = String.valueOf(this.data.get(Calendar.YEAR)); 
+            int tp = this.data.get(Calendar.MONTH);
+                // adicionando mês com 2 digitos a string
+            if(tp < 10){
+                dt += "0"+tp; 
+            }else{
+                dt += tp;
+            }
+                // adicionando dia com 2 digitos a string
+            tp = this.data.get(Calendar.DAY_OF_MONTH);
+            if(tp < 10){
+                dt += "0"+tp; 
+            }else{
+                dt += tp;
+            }
+                // adicionando escala a string
+            dt += this.trab<10?"0"+this.trab:this.trab;
+            dt += this.folg<10?"0"+this.folg:this.folg;
+            dt += cbReuniao.isSelected()?"1":"0";
+            dt += this.idioma;
+                // finalizando
+            fw.write(dt);
+            fw.flush();
+            JOptionPane.showMessageDialog(this, textos[this.idioma][12]+"\n"+textos[this.idioma][13]+
+                    "\n"+textos[this.idioma][0]+this.trab+textos[this.idioma][1]+
+                    this.folg+(cbReuniao.isSelected()?textos[this.idioma][14]:textos[this.idioma][15])+
+                    textos[this.idioma][16], textos[this.idioma][17], 1);
+        }catch(java.io.IOException ex){
+        ex.printStackTrace();
+        }
+    }                                        
+
+    private void tgBrasilActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        this.idioma = 0;
+        this.data.setTime(jcCalendario.getDate());
+        mudaComponentes();
+    }                                        
+
+    private void tgInglaterraActionPerformed(java.awt.event.ActionEvent evt) {                                             
+        this.idioma = 1;
+        this.data.setTime(jcCalendario.getDate());
+        mudaComponentes();
+    }                                            
+
+    private void tgEspanhaActionPerformed(java.awt.event.ActionEvent evt) {                                          
+        this.idioma = 2;
+        this.data.setTime(jcCalendario.getDate());
+        mudaComponentes();
+    }                                         
+
+    private void tgFrancaActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        this.idioma = 3;
+        this.data.setTime(jcCalendario.getDate());
+        mudaComponentes();
+    }                                        
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(TelaEscala.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(TelaEscala.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(TelaEscala.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(TelaEscala.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new TelaEscala().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify                     
+    private javax.swing.JButton btFechar;
+    private javax.swing.JButton btImprimir;
+    private javax.swing.JButton btSalvar;
+    private javax.swing.JCheckBox cbReuniao;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private com.toedter.calendar.JCalendar jcCalendario;
+    private javax.swing.JLabel lbEmbarque;
+    private javax.swing.JLabel lbEscala;
+    private javax.swing.JPanel pnGeral;
+    private javax.swing.JToggleButton rd14;
+    private javax.swing.JToggleButton rd28;
+    private javax.swing.JToggleButton rdEditar;
+    private javax.swing.ButtonGroup rgEscala;
+    private javax.swing.ButtonGroup rgIdioma;
+    private javax.swing.JToggleButton tgBrasil;
+    private javax.swing.JToggleButton tgEspanha;
+    private javax.swing.JToggleButton tgFranca;
+    private javax.swing.JToggleButton tgInglaterra;
+    // End of variables declaration                   
+}
