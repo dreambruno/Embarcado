@@ -1,0 +1,42 @@
+
+package escala;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Programa de gerenciamento de escala.
+ * @author Dream
+ */
+public class Embarcado {
+
+    /**
+     * Método externo.
+     * Usado para reabrir a janela principal quando da erro 
+     * de leitura no arquivo de dados (save.txt).
+     * Esse método deleta o arquivo e reabre o programa.
+     */
+    public static void reabrir(){
+        java.io.File file = new java.io.File("save.txt");
+        file.delete();
+        TelaEscala te = new TelaEscala();
+        te.setVisible(true);
+    }
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+            // Abre tela de boas vindas
+        TelaBemVindo tbv = new TelaBemVindo();
+        tbv.setVisible(true);
+        try {
+                // Espera 3 segundos antes de abrir o programa principal
+            java.lang.Thread.sleep(3000);
+            tbv.dispose(); // fecha tela de boas vindas
+            TelaEscala te = new TelaEscala();
+            te.setVisible(true);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(TelaBemVindo.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+}
